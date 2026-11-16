@@ -124,3 +124,16 @@ export function getBdeRange(period) {
   else if (period === 'All time') lo = 0;
   return [lo, hi];
 }
+
+/** localStorage that never throws (quota exceeded, private mode) — used by the persisted stores. */
+export const safeStorage = {
+  getItem: (k) => {
+    try { return localStorage.getItem(k); } catch { return null; }
+  },
+  setItem: (k, v) => {
+    try { localStorage.setItem(k, v); } catch { /* ignore: demo data just won't persist */ }
+  },
+  removeItem: (k) => {
+    try { localStorage.removeItem(k); } catch { /* ignore */ }
+  },
+};

@@ -33,9 +33,9 @@ export default function LeadDetailModal({ id, onClose, open }) {
             'Legal name': l.name,
             'Primary specialty': l.specialty,
             'Enumeration date': fmtDate(l.enum),
-            'Primary practice': `${l.city}, ${l.state}`,
+            'Primary practice': l.address || `${l.city}, ${l.state}`,
             'Provider time zone': l.tz,
-            Source: l.id % 2 ? 'Sample weekly update' : 'Sample baseline',
+            Source: l.batch || (l.id % 2 ? 'Sample weekly update' : 'Sample baseline'),
             'Practice phone': l.phones[0].value,
           }}
         />
@@ -43,8 +43,8 @@ export default function LeadDetailModal({ id, onClose, open }) {
       <Section title="Taxonomy, licensing & source fields">
         <KeyValueList
           items={{
-            'Primary taxonomy': l.specialty,
-            'License number': 'Unavailable in sample',
+            'Primary taxonomy': l.taxonomy ? `${l.taxonomy} · ${l.specialty}` : l.specialty,
+            'License number': l.license || 'Unavailable in sample',
             'Mailing address': 'Unavailable in sample',
             'Authorized official': 'Unavailable in sample',
             'Secondary practice locations': 'None in sample',

@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { STORAGE_KEYS } from '../../constant';
 import { createBdeSeed } from '../../../utils/data';
 import * as fns from './bdeFns';
+import { safeStorage } from '../../../utils/utils';
 
 const pickData = (s) => ({ leads: s.leads, calls: s.calls, claims: s.claims });
 
@@ -18,6 +19,7 @@ export const useBdeStore = create(
       return {
         ...createBdeSeed(),
         claimLeads: mutate(fns.claimLeads),
+        addPoolLeads: mutate(fns.addPoolLeads),
         recordDisposition: mutate(fns.recordDisposition),
         requestHandoff: mutate(fns.requestHandoff),
         addContact: mutate(fns.addContact),
@@ -30,6 +32,6 @@ export const useBdeStore = create(
         resetDemo: () => set(createBdeSeed()),
       };
     },
-    { name: STORAGE_KEYS.bde, partialize: pickData },
+    { name: STORAGE_KEYS.bde, partialize: pickData, storage: createJSONStorage(() => safeStorage) },
   ),
 );

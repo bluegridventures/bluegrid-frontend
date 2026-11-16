@@ -2,7 +2,8 @@
 // Once the API exists, seeds are replaced by responses from src/store/features/*/…Fns.js
 import { DAY, HOUR, now } from './utils';
 
-export const SPECIALTIES = ['Clinical social work', 'Psychiatry', 'Counseling'];
+// First three keep the seed data indexing (SPECIALTIES[i % 3]) unchanged; the rest come from the NPPES file.
+export const SPECIALTIES = ['Clinical social work', 'Psychiatry', 'Counseling', 'Psychology', 'Marriage & family therapy', 'Behavioral health facility'];
 export const AGENT_ROLES = ['Sales executive', 'Closer'];
 export const ADMIN_PERIODS = ['Today', 'Yesterday', 'This Week', 'Last Week', 'This Month', 'Last Month', 'All Time'];
 export const ADMIN_METRIC_KEYS = ['Dials', 'Connected', 'Appointments', 'BAA sent', 'Clients achieved'];
