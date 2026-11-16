@@ -2,6 +2,7 @@
 // Replace the bodies with http() calls when the backend is available.
 import { DAY, now, parseFuture, str, fmtLocal } from '../../../utils/utils';
 import { BDE_HOURLY_CLAIM_LIMIT, BDE_USER } from '../../constant';
+import { toBdeLead } from '../nppes/nppesFns';
 
 export const isOwned = (l) => l.owner === BDE_USER && !l.achieved && !['Do not call', 'Not interested'].includes(l.status);
 export const isPending = (l) => l.transfer?.state === 'Pending';
@@ -178,4 +179,13 @@ export function updateMeeting(d, p) {
     s === 'Record BAA sent' ? 'BAA sent' : s === 'Record BAA signed' ? 'BAA signed' : s,
     [str(p.channel), str(p.result), str(p.reason), at ? fmtLocal(at) : '', str(p.note)].filter(Boolean).join(' · '),
   );
+}
+
+/** Admin published an import batch: add its providers to the pool (skips NPIs already present). */
+export function addPoolLeads(d, { rows, batch }) {
+  let id = d.leads.length ? Math.max(...d.leads.map((l) => l.id)) + 1 : 0;
+  for (const p of rows) {
+    if (d.leads.some((l) => l.npi === p.npi)) continue;
+    d.leads.push(toBdeLead(p, id++, batch));
+  }
 }

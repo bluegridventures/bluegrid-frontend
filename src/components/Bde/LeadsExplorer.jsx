@@ -8,6 +8,7 @@ import { DAY, fmtLocal, matchText, now, sameDay } from '../../utils/utils';
 
 const SORTS = ['Highest score', 'Provider A–Z', 'Newest enumeration'];
 const PRIORITIES = ['Any priority', 'Missed follow-up', 'Due today', 'Expires in 48 hours', 'Untouched'];
+const batchOf = (l) => l.batch || (l.id % 2 ? 'Sample weekly update' : 'Sample baseline');
 const initial = {
   q: '', state: 'All states', type: 'All types', status: 'All statuses', minScore: '', sort: SORTS[0],
   specialty: 'All specialties', batch: 'All batches', from: '', to: '', priority: PRIORITIES[0],
@@ -25,7 +26,7 @@ export default function LeadsExplorer({ mode }) {
   const matchesExtra = (l) => {
     const d = pool ? l.enum : l.claimed;
     if (f.specialty !== 'All specialties' && f.specialty !== l.specialty) return false;
-    if (pool && f.batch !== 'All batches' && f.batch !== (l.id % 2 ? 'Sample weekly update' : 'Sample baseline')) return false;
+    if (pool && f.batch !== 'All batches' && f.batch !== batchOf(l)) return false;
     if (f.from && d < new Date(f.from + 'T00:00').getTime()) return false;
     if (f.to && d > new Date(f.to + 'T23:59:59.999').getTime()) return false;
     switch (f.priority) {
@@ -109,7 +110,7 @@ export default function LeadsExplorer({ mode }) {
           <summary className="cursor-pointer font-semibold">More filters</summary>
           <div className="my-3 flex flex-wrap items-center gap-3">
             <FilterDropdown label="Specialty" value={f.specialty} onChange={set('specialty')} options={specialties} />
-            {pool && <FilterDropdown label="Import batch" value={f.batch} onChange={set('batch')} options={['All batches', 'Sample baseline', 'Sample weekly update']} />}
+            {pool && <FilterDropdown label="Import batch" value={f.batch} onChange={set('batch')} options={['All batches', ...new Set(leads.filter((l) => l.status === 'Available').map(batchOf))]} />}
             <label className="m-0 flex items-center gap-2 text-xs font-semibold">
               {pool ? 'Enumerated from' : 'Assigned from'}
               <input type="date" value={f.from} onChange={(e) => set('from')(e.target.value)} className={fieldClass} />

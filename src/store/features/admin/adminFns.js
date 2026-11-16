@@ -2,7 +2,7 @@
 // admin state `s` and a payload, mutates the draft and throws Error(message) on
 // validation failures. When the backend is ready, replace each body with an http() call.
 import { DAY, nextId, now, parseFuture, str } from '../../../utils/utils';
-import { MEETING_NEEDS_TIME, SPECIALTIES } from '../../../utils/data';
+import { MEETING_NEEDS_TIME } from '../../../utils/data';
 
 const N = Number;
 export const isFixed = (l) => ['Do not call', 'Not interested', 'Client achieved'].includes(l.stage);
@@ -78,32 +78,49 @@ export function saveRules(s, { spec, min }) {
   log(s, 'Import rules updated');
 }
 
-export function prepareBatch(s, { name, kind }) {
-  const names = ['Laurel Vale Counseling', 'Pine Reach Psychiatry', 'Solstice Therapy', 'Maple Quay Care'];
-  const all = names.map((n, i) => ({ name: n, npi: String(9900000000 + i), specialty: SPECIALTIES[i % 3], score: 92 - i * 8 }));
+export function prepareBatch(s, p) {
   const b = {
     id: nextId(s.imports),
-    name: str(name),
-    kind,
-    rows: all.filter((l) => s.rules.allow.includes(l.specialty) && l.score >= s.rules.min),
-    total: 4,
+    name: str(p.name),
+    kind: p.kind,
+    source: p.source,
+    period: p.period,
+    state: p.state,
+    rows: p.rows, // providers that passed the rules (already limited)
+    total: p.total, // every record in the weekly file
+    inScope: p.inScope, // behavioral-health providers with a US phone
+    passing: p.passing, // pass allowed-specialty + min-score rules
     status: 'Preview ready',
   };
   s.imports.unshift(b);
   return b.id;
 }
 
+/** Adds the batch's providers to the lead pool. Returns the NPIs that were new. */
 export function publishBatch(s, { id }) {
   const b = s.imports.find((x) => x.id === N(id));
-  if (b.status === 'Published') return;
-  let count = 0;
+  if (b.status === 'Published') return [];
+  const added = [];
   for (const l of b.rows) {
     if (s.leads.some((x) => x.npi === l.npi)) continue;
-    s.leads.push({ ...l, id: nextId(s.leads), state: 'WA', phone: '(202) 555-0199', owner: 0, due: null, stage: 'Available' });
-    count++;
+    s.leads.push({
+      id: nextId(s.leads), npi: l.npi, name: l.name, specialty: l.specialty, state: l.state, score: l.score,
+      phone: l.phone, stage: 'Available', owner: 0, due: null,
+    });
+    added.push(l.npi);
   }
   b.status = 'Published';
-  log(s, 'Batch published', `${b.name} · ${count} new leads`);
+  log(s, 'Batch published', `${b.name} · ${added.length} new leads`);
+  return added;
+}
+
+/** A BDE claimed leads from the pool — mirror it here. */
+export function syncClaims(s, { npis, owner }) {
+  const agent = s.agents.find((a) => a.name === owner);
+  for (const l of s.leads.filter((x) => npis.includes(x.npi))) {
+    l.owner = agent?.id || 0;
+    l.stage = 'Fresh';
+  }
 }
 
 /* ---- appointments ---- */

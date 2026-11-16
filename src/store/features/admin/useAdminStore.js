@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { STORAGE_KEYS } from '../../constant';
 import { createAdminSeed } from '../../../utils/data';
 import * as fns from './adminFns';
+import { safeStorage } from '../../../utils/utils';
 
 const DATA_KEYS = ['name', 'zone', 'quota', 'agents', 'leads', 'events', 'imports', 'rules', 'transfers', 'meetings', 'clients', 'tenants', 'plans', 'ledger', 'platformName'];
 const pickData = (s) => Object.fromEntries(DATA_KEYS.map((k) => [k, s[k]]));
@@ -26,6 +27,7 @@ export const useAdminStore = create(
         saveRules: mutate(fns.saveRules),
         prepareBatch: mutate(fns.prepareBatch),
         publishBatch: mutate(fns.publishBatch),
+        syncClaims: mutate(fns.syncClaims),
         scheduleMeeting: mutate(fns.scheduleMeeting),
         updateMeeting: mutate(fns.updateMeeting),
         recordFinancialStep: mutate(fns.recordFinancialStep),
@@ -37,6 +39,6 @@ export const useAdminStore = create(
         resetDemo: () => set(createAdminSeed()),
       };
     },
-    { name: STORAGE_KEYS.admin, partialize: pickData },
+    { name: STORAGE_KEYS.admin, partialize: pickData, storage: createJSONStorage(() => safeStorage) },
   ),
 );

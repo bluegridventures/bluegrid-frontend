@@ -6,6 +6,7 @@ import MetricModal from './MetricModal';
 import { useBdeStore } from '../../../store/features/bde/useBdeStore';
 import { isOwned, isPending } from '../../../store/features/bde/bdeFns';
 import { showToast } from '../../shared';
+import { claimPoolLeads } from '../../../store/features/nppes/nppesActions';
 
 /**
  * Single modal host for the BDE workspace.
@@ -15,7 +16,7 @@ import { showToast } from '../../shared';
  */
 export function useLeadModals() {
   const [m, setM] = useState(null);
-  const { leads, claimLeads, acceptTransfer, cancelTransfer } = useBdeStore();
+  const { leads, acceptTransfer, cancelTransfer } = useBdeStore();
   const close = useCallback(() => setM(null), []);
 
   const open = useCallback(
@@ -31,11 +32,11 @@ export function useLeadModals() {
         setM(null);
       };
       if (type === 'claim') return run(() => {
-        const n = claimLeads({ ids: [Number(id)] });
+        const n = claimPoolLeads([Number(id)]);
         showToast(`${n} of 1 claimed.`);
       });
       if (type === 'claimMany') return run(() => {
-        const n = claimLeads({ ids: id });
+        const n = claimPoolLeads(id);
         showToast(`${n} of ${id.length} claimed.`);
       });
       if (type === 'accept') return run(() => acceptTransfer({ leadId: id }), 'Lead added to My Leads.');
@@ -46,7 +47,7 @@ export function useLeadModals() {
       if (type === 'reject' && lead && !isPending(lead)) return showToast('This request is no longer pending.');
       setM({ type, id, extra });
     },
-    [claimLeads, acceptTransfer, cancelTransfer],
+    [acceptTransfer, cancelTransfer],
   );
 
   const lead = m ? leads.find((l) => l.id === Number(m.id)) : null;
