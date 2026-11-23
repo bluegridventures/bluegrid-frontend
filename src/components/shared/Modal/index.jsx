@@ -19,7 +19,7 @@ export default function Modal({ title, onClose, children }) {
     >
       <div role="dialog" aria-modal="true" aria-label={title} className="max-h-[89vh] w-[min(780px,95vw)] overflow-auto rounded-xl border border-line bg-white">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-white px-[22px] py-4">
-          <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+          <h2 className="text-xl text-header font-semibold tracking-tight">{title}</h2>
           <Button onClick={onClose}>Close</Button>
         </div>
         <div className="px-[22px] py-[18px]">{children}</div>

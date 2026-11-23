@@ -72,4 +72,17 @@ export const adminNav = admin;
 export const platformNav = platform;
 export const bdeNav = bde;
 
-export const homeFor = (role) => (role === 'admin' ? '/admin' : role === 'bde' ? '/bde' : '/login');
+/** Which portal each backend role belongs to. */
+const HOME_BY_ROLE = {
+  platform_admin: '/platform',
+  company_admin: '/admin',
+  sales_executive: '/bde',
+  closer: '/bde',
+};
+export const homeFor = (role) => HOME_BY_ROLE[role] || '/login';
+
+/** True when `role` may open `pathname` (a user can only open their own portal). */
+export const canAccess = (role, pathname) => {
+  const home = HOME_BY_ROLE[role];
+  return !!home && (pathname === home || pathname.startsWith(`${home}/`));
+};

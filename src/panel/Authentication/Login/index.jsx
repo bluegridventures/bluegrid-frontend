@@ -1,59 +1,47 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button, Field, Spinner } from '../../../components/shared';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Button, Spinner } from '../../../components/shared';
+import AuthCard, { FormAlert } from '../../../components/Auth/AuthCard';
+import AuthField from '../../../components/Auth/AuthField';
+import useAuthForm from '../../../components/Auth/useAuthForm';
 import { useAuthStore } from '../../../store/features/auth/useAuthStore';
-import { demoAccounts } from '../../../store/features/auth/authFns';
-import { homeFor } from '../../../router/config';
+import { validateEmail, validateRequired } from '../../../utils/validators';
+import { canAccess, homeFor } from '../../../router/config';
 
 export default function Login() {
-  const { signIn, loading, error } = useAuthStore();
+  const login = useAuthStore((s) => s.login);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const notice = useAuthStore((s) => s.notice); // "session expired", "account disabled"...
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const location = useLocation();
+  const message = location.state?.message; // e.g. "Password reset. Sign in with your new password."
 
-  const submit = async (e) => {
-    e.preventDefault();
-    const user = await signIn(form);
-    if (user) navigate(homeFor(user.role), { replace: true });
-  };
+  const form = useAuthForm({ email: '', password: '' }, (v) => ({
+    email: validateEmail(v.email),
+    password: validateRequired('Password')(v.password),
+  }));
+
+  const onSubmit = form.submit(async (v) => {
+    const user = await login(v.email.trim(), v.password);
+    const from = location.state?.from?.pathname;
+    // go back to the page the user wanted, but only if their role may open it
+    navigate(from && canAccess(user.role, from) ? from : homeFor(user.role), { replace: true });
+  });
 
   return (
-    <div className="grid min-h-screen place-items-center bg-page p-4">
-      <div className="w-full max-w-[420px] rounded-xl border border-line bg-white p-7">
-        <span className="mb-5 flex items-center gap-[9px] text-[26px] font-bold tracking-[-1px] text-header">
-          <i
-            aria-hidden="true"
-            className="block h-6 w-6 bg-[#76d4ac]"
-            style={{ backgroundImage: 'linear-gradient(90deg,transparent 43%,#142e3c 43% 57%,transparent 57%),linear-gradient(transparent 43%,#142e3c 43% 57%,transparent 57%)' }}
-          />
-          Bluegrid
-        </span>
-        <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
-        <p className="mt-1 text-muted">Use a demo account to open the Admin console or the BDE workspace.</p>
-        <form onSubmit={submit} className="mt-4">
-          <label className="my-2.5 grid gap-1 font-semibold">
-            Email
-            <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-md border border-field px-2.5 py-2" />
-          </label>
-          <label className="my-2.5 grid gap-1 font-semibold">
-            Password
-            <input type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="rounded-md border border-field px-2.5 py-2" />
-          </label>
-          <p role="alert" className="text-danger">{error}</p>
-          <Button variant="primary" type="submit" className="mt-2 flex w-full items-center justify-center gap-2" disabled={loading}>
-            {loading && <Spinner />} Sign in
-          </Button>
-        </form>
-        <div className="mt-5 border-t border-line pt-4">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">Demo accounts</p>
-          <div className="flex flex-wrap gap-2">
-            {demoAccounts.map((a) => (
-              <Button key={a.email} onClick={() => setForm({ email: a.email, password: a.password })}>
-                {a.role === 'admin' ? 'Admin console' : 'BDE workspace'}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+    <AuthCard title="Sign in" subtitle="Use your Bluegrid account.">
+      <form noValidate onSubmit={onSubmit}>
+        <FormAlert type="success">{message}</FormAlert>
+        <FormAlert type="warn">{notice}</FormAlert>
+        <AuthField label="Email" type="email" autoComplete="username" value={form.values.email} onChange={form.set('email')} error={form.errors.email} />
+        <AuthField label="Password" type="password" autoComplete="current-password" value={form.values.password} onChange={form.set('password')} error={form.errors.password} />
+        <FormAlert>{form.formError}</FormAlert>
+        <Button variant="primary" type="submit" disabled={isLoading} className="mt-2 flex w-full items-center justify-center gap-2">
+          {isLoading && <Spinner />} Sign in
+        </Button>
+        <p className="mt-3 text-center text-sm">
+          <Link to="/forgot-password" className="font-semibold text-brand">Forgot password?</Link>
+        </p>
+      </form>
+    </AuthCard>
   );
 }
