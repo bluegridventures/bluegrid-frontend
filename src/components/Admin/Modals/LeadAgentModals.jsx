@@ -2,7 +2,9 @@ import { Modal, Button, Table, StatusBadge, ProviderCell, KeyValueList } from '.
 import AuditTable from '../AuditTable';
 import { useAdminStore } from '../../../store/features/admin/useAdminStore';
 import { isFixed } from '../../../store/features/admin/adminFns';
-import { agentName, countEvents, fmtZone } from '../../../utils/utils';
+import { useTeamStore } from '../../../store/features/team/useTeamStore';
+import { ROLE_LABELS } from '../../../store/constant';
+import { agentName, countEvents, fmtDate, fmtZone } from '../../../utils/utils';
 
 export function LeadDetailModal({ id, onClose, open }) {
   const { leads, agents, events, zone } = useAdminStore();
@@ -29,26 +31,35 @@ export function LeadDetailModal({ id, onClose, open }) {
   );
 }
 
+/**
+ * Profile header comes from the real team API (store). Leads, dials and activity are still demo data:
+ * they are matched to a demo agent by name until the profile / Leads APIs exist.
+ */
 export function AgentDetailModal({ id, onClose, open }) {
   const { leads, agents, events } = useAdminStore();
-  const m = agents.find((a) => a.id === Number(id));
-  if (!m) return null;
-  const mine = leads.filter((l) => l.owner === m.id && !isFixed(l));
-  const v = countEvents(events.filter((e) => e.agent === m.id));
+  const member = useTeamStore((s) => s.members.find((x) => x.id === id));
+  if (!member) return null;
+  const lower = member.name.toLowerCase();
+  const m = agents.find((a) => lower === a.name.toLowerCase() || lower.startsWith(`${a.name.toLowerCase()} `));
+  const mine = m ? leads.filter((l) => l.owner === m.id && !isFixed(l)) : [];
+  const mineEvents = m ? events.filter((e) => e.agent === m.id) : [];
+  const v = countEvents(mineEvents);
   return (
-    <Modal title={m.name} onClose={onClose}>
+    <Modal title={member.name} onClose={onClose}>
       <KeyValueList
         items={{
-          'Work email': m.email,
-          Role: m.role,
-          Status: m.status,
-          'Hourly claim limit': m.quota,
-          'All-time dials': v[0],
-          'Connected calls': v[1],
+          'Work email': member.email,
+          Phone: member.phone,
+          Role: ROLE_LABELS[member.role] || member.role,
+          Status: member.status,
+          'Hourly claim limit': member.claimLimitPerHour,
+          'Last login': member.lastLoginAt ? fmtDate(member.lastLoginAt) : '',
+          'All-time dials (demo)': v[0],
+          'Connected calls (demo)': v[1],
         }}
       />
-      <Button className="mt-3" onClick={() => open('editAgent', m.id)}>Edit profile</Button>
-      <h3 className="mt-4 text-[15px] font-semibold">Assigned leads</h3>
+      {member.status !== 'Revoked' && <Button className="mt-3" onClick={() => open('editAgent', member.id)}>Edit profile</Button>}
+      <h3 className="mt-4 text-[15px] font-semibold">Assigned leads (demo)</h3>
       <Table
         columns={[
           { header: 'Provider', cell: (l) => <ProviderCell name={l.name} npi={l.npi} onClick={() => open('lead', l.id)} /> },
@@ -56,8 +67,8 @@ export function AgentDetailModal({ id, onClose, open }) {
         ]}
         rows={mine}
       />
-      <h3 className="mt-4 text-[15px] font-semibold">Activity</h3>
-      <AuditTable events={events.filter((e) => e.agent === m.id)} onOpenLead={(lid) => open('lead', lid)} />
+      <h3 className="mt-4 text-[15px] font-semibold">Activity (demo)</h3>
+      <AuditTable events={mineEvents} onOpenLead={(lid) => open('lead', lid)} />
     </Modal>
   );
 }

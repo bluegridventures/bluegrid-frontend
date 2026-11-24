@@ -1,5 +1,11 @@
 import { fieldClass } from '../FilterDropdown';
 import { cn } from '../../../utils/utils';
+import { useFieldError } from '../Modal/FormErrors';
+
+const FieldError = ({ name }) => {
+  const message = useFieldError(name);
+  return message ? <span role="alert" className="text-xs font-normal text-danger">{message}</span> : null;
+};
 
 const labelClass = 'my-2.5 grid gap-1 font-semibold';
 const norm = (o) => (typeof o === 'string' ? { value: o, label: o } : o);
@@ -9,6 +15,7 @@ export function Field({ label, name, type = 'text', defaultValue = '', required 
     <label className={cn(labelClass, className)}>
       {label}
       <input name={name} type={type} defaultValue={defaultValue ?? ''} required={required} className={fieldClass} {...rest} />
+      <FieldError name={name} />
     </label>
   );
 }
@@ -30,6 +37,7 @@ export function SelectField({ label, name, options, defaultValue, required = tru
           return <option key={value} value={value}>{text}</option>;
         })}
       </select>
+      <FieldError name={name} />
     </label>
   );
 }
@@ -39,6 +47,7 @@ export function TextAreaField({ label, name = 'note', required = true, maxLength
     <label className={labelClass}>
       {label}
       <textarea name={name} required={required} maxLength={maxLength} defaultValue={defaultValue} className={cn(fieldClass, 'min-h-[70px]')} />
+      <FieldError name={name} />
     </label>
   );
 }

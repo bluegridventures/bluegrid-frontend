@@ -1,9 +1,22 @@
 import { useState } from 'react';
 import { FormModal, Field, SelectField, TextAreaField, CheckboxGroup } from '../../shared';
 import { useBdeStore } from '../../../store/features/bde/useBdeStore';
+import { useMembersPicker } from '../../../store/features/team/useMembersStore';
 import { BDE_SERVICES, CALL_OUTCOMES, NOT_INTERESTED_REASONS } from '../../../utils/data';
 
 const when = (label) => <Field label={`${label} (your local time)`} name="at" type="datetime-local" />;
+
+/** Participants come from GET /team/members?excludeSelf=true (fetched only when this field mounts). */
+function ParticipantsField() {
+  const { members, isLoading, error } = useMembersPicker({ excludeSelf: true });
+  return (
+    <>
+      <CheckboxGroup legend="Optional participants" name="participants" options={members.map((m) => ({ value: m.name, label: m.name }))} />
+      {isLoading && !members.length && <p className="text-muted">Loading team…</p>}
+      {error && <p className="text-danger">Could not load team members: {error}</p>}
+    </>
+  );
+}
 
 function OutcomeFields({ lead, outcome }) {
   const phones = lead.phones.filter((p) => p.ok).map((p) => p.value);
@@ -45,7 +58,7 @@ function OutcomeFields({ lead, outcome }) {
           {when('Meeting')}
           <Field label="Meeting link" name="link" type="url" />
           <CheckboxGroup legend="Services" name="services" options={BDE_SERVICES} />
-          <CheckboxGroup legend="Optional participants" name="participants" options={['Maya', 'Moe']} />
+          <ParticipantsField />
         </>
       )}
       <TextAreaField label={outcome === 'Gatekeeper block' ? 'What did the gatekeeper say?' : 'Call note'} maxLength={1200} />

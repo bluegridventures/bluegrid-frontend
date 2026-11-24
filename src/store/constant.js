@@ -20,11 +20,20 @@ export const ROLE_LABELS = {
   closer: 'Closer',
 };
 
+/** Exact status strings used by the team API. */
+export const TEAM_STATUSES = ['Invited', 'Active', 'Suspended', 'Revoked'];
+
+/** Role <select> options: value is the API code, label is the UI text. */
+export const AGENT_ROLE_OPTIONS = [
+  { value: 'sales_executive', label: ROLE_LABELS.sales_executive },
+  { value: 'closer', label: ROLE_LABELS.closer },
+];
+
 /** The BDE signed-in sales executive in the demo data (still dummy until the leads API is integrated). */
 export const BDE_USER = 'Zack';
 export const BDE_HOURLY_CLAIM_LIMIT = 50;
 
-/** REST endpoints, relative to VITE_API_BASE_URL. Only `auth` is live; the rest are planned. */
+/** REST endpoints, relative to VITE_API_BASE_URL. Live: auth, team, settings, teamMembers. The rest are planned. */
 export const ENDPOINTS = {
   auth: {
     login: '/auth/login',
@@ -36,6 +45,9 @@ export const ENDPOINTS = {
     resetPassword: '/auth/reset-password',
     changePassword: '/auth/change-password',
   },
+  team: '/admin/team',
+  settings: '/admin/settings',
+  teamMembers: '/team/members',
   adminOverview: '/admin/overview',
   adminLeads: '/admin/leads',
   adminAgents: '/admin/agents',

@@ -4,6 +4,7 @@ import { useAdminStore } from '../../../store/features/admin/useAdminStore';
 import { isFixed, nextStep } from '../../../store/features/admin/adminFns';
 import { ADMIN_SERVICES, MEETING_NEEDS_TIME, MEETING_UPDATES, TIMEZONES } from '../../../utils/data';
 import { fmtZone, money } from '../../../utils/utils';
+import { useSettingsStore } from '../../../store/features/settings/useSettingsStore';
 
 export function NewMeetingModal({ onClose }) {
   const { leads, meetings, scheduleMeeting } = useAdminStore();
@@ -63,13 +64,27 @@ export function FinanceStepModal({ leadId, onClose }) {
   );
 }
 
+/** Real company settings: PATCH /admin/settings (only changed fields are sent). */
 export function CompanySettingsModal({ onClose }) {
-  const { name, zone, quota, updateSettings } = useAdminStore();
+  const settings = useSettingsStore((s) => s.settings);
+  const saveSettings = useSettingsStore((s) => s.saveSettings);
+  if (!settings) return null;
+  const zones = TIMEZONES.includes(settings.timezone) ? TIMEZONES : [settings.timezone, ...TIMEZONES];
+
+  const onSubmit = async (p) => {
+    const next = { name: p.name.trim(), timezone: p.timezone, defaultClaimLimit: Number(p.defaultClaimLimit) };
+    const body = {};
+    Object.keys(next).forEach((k) => { if (next[k] !== settings[k]) body[k] = next[k]; });
+    if (!Object.keys(body).length) throw Error('No changes to save.');
+    await saveSettings(body);
+  };
+
   return (
-    <FormModal title="Edit company settings" onClose={onClose} onSubmit={updateSettings}>
-      <Field label="Company name" name="name" defaultValue={name} />
-      <SelectField label="Reporting timezone" name="zone" options={TIMEZONES} defaultValue={zone} />
-      <Field label="Default hourly claim limit" name="quota" type="number" defaultValue={quota} min="1" max="500" />
+    <FormModal title="Edit company settings" submitLabel="Save changes" successMessage="Settings saved." onClose={onClose} onSubmit={onSubmit}>
+      <Field label="Company name" name="name" defaultValue={settings.name} maxLength={120} />
+      <SelectField label="Reporting timezone" name="timezone" options={zones} defaultValue={settings.timezone} />
+      <Field label="Default hourly claim limit" name="defaultClaimLimit" type="number" defaultValue={settings.defaultClaimLimit} min="1" max="500" />
+      <p className="my-2 text-muted">Applies to newly created users only. Week starts on {settings.weekStartsOn}.</p>
     </FormModal>
   );
 }

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { STORAGE_KEYS } from '../../constant';
 import { configureHttp, refreshAccessToken } from '../../http';
+import { resetAllStores } from '../../resetRegistry';
 import {
   acceptInviteRequest, changePasswordRequest, forgotPasswordRequest, loginRequest,
   logoutRequest, meRequest, resetPasswordRequest,
@@ -38,7 +39,14 @@ export const useAuthStore = create((set, get) => {
     notice: '', // message to show on the login page (session ended, account disabled…)
 
     setAccessToken: (accessToken) => set({ accessToken }),
-    clear: (notice = '') => set({ user: null, accessToken: null, isAuthenticated: false, isLoading: false, error: '', notice }),
+    clear: (notice = '') => {
+      resetAllStores(); // drop team / settings / picker data of the previous user
+      set({ user: null, accessToken: null, isAuthenticated: false, isLoading: false, error: '', notice });
+    },
+
+    /** After Settings are saved: keep the header (tenant name / timezone) in sync without a refetch. */
+    patchTenant: (patch) =>
+      set((s) => (s.user?.tenant ? { user: { ...s.user, tenant: { ...s.user.tenant, ...patch } } } : {})),
 
     /** App startup: refresh cookie → new access token → /auth/me. Safe to call twice (StrictMode); runs once. */
     initialize: () => {

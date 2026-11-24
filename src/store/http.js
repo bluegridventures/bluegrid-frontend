@@ -9,12 +9,13 @@ const ACCOUNT_BLOCKED = ['ACCOUNT_DISABLED', 'TENANT_SUSPENDED'];
 
 /** Normalized error: every failure (network, 4xx, 5xx) looks like { code, message, details, status }. */
 export class ApiError extends Error {
-  constructor({ code, message, details = [], status = 0 }) {
+  constructor({ code, message, details = [], status = 0, reasonCode = '' }) {
     super(message);
     this.name = 'ApiError';
     this.code = code;
     this.details = details;
     this.status = status;
+    this.reasonCode = reasonCode; // e.g. SEAT_LIMIT_REACHED / INVALID_STATE (code is BUSINESS_RULE_VIOLATION)
   }
 }
 
@@ -35,7 +36,7 @@ function toApiError(status, json) {
     status === 429 || code === 'RATE_LIMITED'
       ? 'Too many attempts, try again in a few minutes.'
       : e.message || 'Something went wrong. Please try again.';
-  return new ApiError({ code, message, details: Array.isArray(e.details) ? e.details : [], status });
+  return new ApiError({ code, message, details: Array.isArray(e.details) ? e.details : [], status, reasonCode: e.reasonCode || '' });
 }
 
 /** One network call, no refresh logic. Resolves with `data`, rejects with ApiError. */

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FormModal, Field, SelectField, TextAreaField, KeyValueList } from '../../shared';
 import { useBdeStore } from '../../../store/features/bde/useBdeStore';
+import { useMembersPicker } from '../../../store/features/team/useMembersStore';
 import { isPending } from '../../../store/features/bde/bdeFns';
 import { MEETING_OUTCOMES } from '../../../utils/data';
 import { fmtLocal } from '../../../utils/utils';
@@ -10,10 +11,18 @@ const when = (label) => <Field label={`${label} (your local time)`} name="at" ty
 
 export function HandoffModal({ lead, onClose, open }) {
   const requestHandoff = useBdeStore((s) => s.requestHandoff);
+  // recipients come from GET /team/members?excludeSelf=true (you cannot hand off to yourself)
+  const { members, isLoading, error } = useMembersPicker({ excludeSelf: true });
   return (
     <FormModal title="Transfer or share" subtitle={lead.name} successMessage={SAVED} onClose={onClose} onBack={() => open('lead', lead.id)} onSubmit={(p) => requestHandoff({ leadId: lead.id, ...p })}>
       <SelectField label="Action" name="operation" options={isPending(lead) ? ['Share read-only'] : ['Request transfer', 'Share read-only']} />
-      <SelectField label="Team member" name="to" options={['Maya', 'Moe']} />
+      <SelectField
+        label="Team member"
+        name="to"
+        placeholder={isLoading && !members.length ? 'Loading team…' : 'Select team member'}
+        options={members.map((m) => ({ value: m.name, label: m.name }))}
+      />
+      {error && <p className="text-danger">Could not load team members: {error}</p>}
       <Field label="Reason" name="reason" />
       <TextAreaField label="Handoff note" maxLength={1200} />
     </FormModal>

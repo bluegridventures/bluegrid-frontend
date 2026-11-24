@@ -1,7 +1,7 @@
 import Button from '../Button';
 import { cn } from '../../../utils/utils';
 
-const WARN = ['Admin review', 'Pending', 'Suspended', 'Do not call', 'Past due', 'Missed'];
+const WARN = ['Admin review', 'Pending', 'Suspended', 'Revoked', 'Do not call', 'Past due', 'Missed'];
 
 export function StatusBadge({ label, tone }) {
   const warn = tone ? tone === 'warn' : WARN.includes(label);
