@@ -73,7 +73,7 @@ export function createAdminSeed() {
     'Meadowline Counseling', 'Silver Fern Psychiatry', 'Aspen Leaf Therapy', 'Cypress Ridge Care',
   ];
   const stages = [
-    'Callback', 'Showing interest', 'Appointment', 'BAA sent', 'Client achieved', 'Available',
+    'Callback', 'Showing interest', 'Appointment scheduled', 'BAA sent', 'Client achieved', 'Available',
     'Available', 'Do not call', 'Admin review', 'Fresh', 'Client achieved', 'Available',
   ];
   const owners = [1, 1, 2, 2, 2, 0, 0, 0, 0, 3, 1, 0];
@@ -115,7 +115,7 @@ export function createAdminSeed() {
     });
   }
   return {
-    name: 'Bluegrid Billing',
+    name: 'NorthGate Billing',
     zone: 'America/New_York',
     quota: 50,
     agents,
@@ -132,7 +132,7 @@ export function createAdminSeed() {
       { lead: 11, signed: t - 3 * DAY, contract: false, invoice: null, paid: false, work: false },
     ],
     tenants: [
-      { id: 1, name: 'Bluegrid Billing', slug: 'northgate', email: 'admin@example.test', plan: 'Growth', seats: 12, status: 'Active', storage: 20, limit: 8 },
+      { id: 1, name: 'NorthGate Billing', slug: 'northgate', email: 'admin@example.test', plan: 'Growth', seats: 12, status: 'Active', storage: 20, limit: 8 },
       { id: 2, name: 'Cobalt Revenue Group', slug: 'cobalt', email: 'ops@example.test', plan: 'Pilot', seats: 5, status: 'Trial', storage: 10, limit: 4 },
     ],
     plans: [

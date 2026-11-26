@@ -40,7 +40,7 @@ function toApiError(status, json) {
 }
 
 /** One network call, no refresh logic. Resolves with `data`, rejects with ApiError. */
-async function rawRequest(path, { method = 'GET', body, token } = {}) {
+async function rawRequest(path, { method = 'GET', body, token, withMeta = false } = {}) {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -56,7 +56,7 @@ async function rawRequest(path, { method = 'GET', body, token } = {}) {
     throw networkError();
   }
   const json = await res.json().catch(() => null);
-  if (res.ok && json?.success) return json.data;
+  if (res.ok && json?.success) return withMeta ? { data: json.data, meta: json.meta ?? null } : json.data;
   throw toApiError(res.status, json);
 }
 
@@ -88,8 +88,9 @@ const shouldRefresh = (path, err) =>
  *  - on an expired token: refreshes once, retries the request once
  *  - on a dead session or a disabled account: tells the auth store to sign out
  */
-export async function http(path, { method = 'GET', body, auth = true } = {}) {
-  const send = () => rawRequest(path, { method, body, token: auth ? bridge.getToken() : null });
+export async function http(path, { method = 'GET', body, auth = true, meta = false } = {}) {
+  // meta: true -> resolves { data, meta } (paginated lists) instead of just `data`
+  const send = () => rawRequest(path, { method, body, token: auth ? bridge.getToken() : null, withMeta: meta });
   try {
     return await send();
   } catch (err) {

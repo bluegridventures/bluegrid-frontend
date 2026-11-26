@@ -7,6 +7,8 @@ import { useBdeStore } from '../../../store/features/bde/useBdeStore';
 import { isOwned, isPending } from '../../../store/features/bde/bdeFns';
 import { showToast } from '../../shared';
 import { claimPoolLeads } from '../../../store/features/nppes/nppesActions';
+import LeadDetailDialog from '../../Leads/LeadDetailDialog';
+import { ApiContactModal, ApiShareModal } from '../../Leads/LeadActionModals';
 
 /**
  * Single modal host for the BDE workspace.
@@ -54,7 +56,11 @@ export function useLeadModals() {
   const p = { onClose: close, open };
   let el = null;
   if (m) {
-    if (m.type === 'metric') el = <MetricModal metric={m.id} period={m.extra.period} {...p} />;
+    // real (API) leads have 24-char string ids; the demo data (dashboards, follow-ups...) uses numbers
+    if (m.type === 'lead' && typeof m.id === 'string') el = <LeadDetailDialog id={m.id} {...p} />;
+    else if (m.type === 'apiContact') el = <ApiContactModal id={m.id} {...p} />;
+    else if (m.type === 'apiShare') el = <ApiShareModal id={m.id} {...p} />;
+    else if (m.type === 'metric') el = <MetricModal metric={m.id} period={m.extra.period} {...p} />;
     else if (m.type === 'lead') el = <LeadDetailModal id={m.id} {...p} />;
     else if (lead) {
       const forms = { call: DispositionModal, handoff: HandoffModal, contact: ContactModal, reject: RejectModal, reschedule: RescheduleModal, complete: CompleteModal, meeting: MeetingModal };

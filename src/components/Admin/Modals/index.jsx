@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { LeadDetailModal, AgentDetailModal } from './LeadAgentModals';
+import LeadDetailDialog from '../../Leads/LeadDetailDialog';
 import { ReassignModal, AgentFormModal, AgentStatusModal, CancelTransferModal } from './TeamModals';
 import { RulesModal, PrepareBatchModal, BatchPreviewModal, ZipInspectModal } from './ImportModals';
 import {
@@ -20,7 +21,8 @@ export function useAdminModals() {
   let el = null;
   if (m) {
     switch (m.type) {
-      case 'lead': el = <LeadDetailModal id={m.id} {...p} />; break;
+      // API leads have string ids (real detail); demo leads have numeric ids
+      case 'lead': el = typeof m.id === 'string' ? <LeadDetailDialog id={m.id} {...p} /> : <LeadDetailModal id={m.id} {...p} />; break;
       case 'agent': el = <AgentDetailModal id={m.id} {...p} />; break;
       case 'assign': el = <ReassignModal ids={[m.id]} {...p} />; break;
       case 'bulk': el = <ReassignModal ids={m.id} {...p} />; break;

@@ -10,4 +10,5 @@ export { default as Tabs } from './Tabs';
 export { default as Table } from './Table';
 export { default as AnalyticsCard, StatGrid } from './AnalyticsCard';
 export { Field, SelectField, TextAreaField, CheckboxGroup, FormRow } from './Form';
-export { StatusBadge, PageHeader, KeyValueList, ProviderCell, ActivityTimeline, BarChart, EmptyState } from './Common';
+export { StatusBadge, PageHeader, KeyValueList, ProviderCell, ActivityTimeline, BarChart, EmptyState, ErrorBanner } from './Common';
+export { default as Pagination } from './Pagination';

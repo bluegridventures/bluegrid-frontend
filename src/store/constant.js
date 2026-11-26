@@ -29,11 +29,17 @@ export const AGENT_ROLE_OPTIONS = [
   { value: 'closer', label: ROLE_LABELS.closer },
 ];
 
+/** Lead stage strings, exactly as the API returns them. */
+export const LEAD_STAGES = [
+  'Available', 'Fresh', 'No response', 'Gatekeeper block', 'Wrong number', 'Callback', 'Showing interest',
+  'Appointment scheduled', 'BAA sent', 'Client achieved', 'Not interested', 'Do not call', 'Admin review',
+];
+
 /** The BDE signed-in sales executive in the demo data (still dummy until the leads API is integrated). */
 export const BDE_USER = 'Zack';
 export const BDE_HOURLY_CLAIM_LIMIT = 50;
 
-/** REST endpoints, relative to VITE_API_BASE_URL. Live: auth, team, settings, teamMembers. The rest are planned. */
+/** REST endpoints, relative to VITE_API_BASE_URL. Live: auth, team, settings, teamMembers, leads. The rest are planned. */
 export const ENDPOINTS = {
   auth: {
     login: '/auth/login',
@@ -50,6 +56,13 @@ export const ENDPOINTS = {
   teamMembers: '/team/members',
   adminOverview: '/admin/overview',
   adminLeads: '/admin/leads',
+  leads: {
+    filters: '/leads/filters',
+    pool: '/leads/pool',
+    claim: '/leads/pool/claim',
+    mine: '/leads/mine',
+    one: (id) => `/leads/${id}`,
+  },
   adminAgents: '/admin/agents',
   bdeLeads: '/bde/leads',
   bdeFollowUps: '/bde/follow-ups',

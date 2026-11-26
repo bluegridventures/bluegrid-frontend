@@ -6,7 +6,7 @@ import { MEETING_NEEDS_TIME } from '../../../utils/data';
 
 const N = Number;
 export const isFixed = (l) => ['Do not call', 'Not interested', 'Client achieved'].includes(l.stage);
-export const isWarm = (l) => ['Showing interest', 'Appointment', 'BAA sent', 'Admin review'].includes(l.stage);
+export const isWarm = (l) => ['Showing interest', 'Appointment', 'Appointment scheduled', 'BAA sent', 'Admin review'].includes(l.stage);
 export const getLead = (s, id) => s.leads.find((l) => l.id === N(id));
 export const getAgent = (s, id) => s.agents.find((a) => a.id === N(id));
 const ownerName = (s, id) => getAgent(s, id)?.name || 'Unassigned';
@@ -132,7 +132,7 @@ export function scheduleMeeting(s, p) {
     id: nextId(s.meetings), lead: l.id, at, owner: l.owner, status: 'Pending confirmation',
     link: str(p.url), email: str(p.email), service: p.service, participants: str(p.participants), note: str(p.note),
   });
-  l.stage = 'Appointment';
+  l.stage = 'Appointment scheduled';
   log(s, 'Appointment set', str(p.note), l.id);
 }
 

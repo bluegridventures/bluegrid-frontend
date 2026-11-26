@@ -77,3 +77,14 @@ export function BarChart({ data, maxHeight = 68 }) {
 export function EmptyState({ children }) {
   return <p className="py-5 text-muted">{children}</p>;
 }
+
+/** Red inline banner with an optional Retry button (list / detail load failures). */
+export function ErrorBanner({ message, onRetry }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="my-3 flex flex-wrap items-center gap-2 rounded-md border border-danger/30 bg-[#fdecea] px-3 py-2 text-sm text-danger">
+      {message}
+      {onRetry && <Button variant="link" onClick={onRetry}>Retry</Button>}
+    </p>
+  );
+}
